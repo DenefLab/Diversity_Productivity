@@ -1,7 +1,7 @@
 ---
 title: "Analysis: Microhabitats shape diversity-productivity" 
 author: "Marian L. Schmidt, marschmi@umich.edu, @micro_marian"
-date: "November 28th, 2017"
+date: "December 7th, 2017"
 output:
   html_document:
     code_folding: show
@@ -28,9 +28,9 @@ pre code, pre, code {
 
 #### Purpose of this file  
 
-This file has all of the code for the the main analysis to reproduce all figures except Figure S6 in the Schmidt et al. manuscript entitled **"Microhabitats shape diversity-productivity relationships in freshwater bacterial communities"**. To see how to reproduce figure S6 please see the github for this project and go to `analysis/OTU_Removal_Analysis.html`.
+This file has all of the code for the the main analysis to reproduce all figures except Figure S6 in the Schmidt et al. manuscript entitled **"Microhabitats shape diversity-productivity relationships in freshwater bacterial communities"**. To see how to reproduce figure S6 please see the github for this project and go to [analysis/OTU_Removal_Analysis.html](https://deneflab.github.io/Diversity_Productivity/analysis/OTU_Removal_Analysis.html)  on the github page.
 
-##### If you have any questions, please be welcome to email the corresponding author at marschmi@umich.edu
+##### If you have any questions, please be welcome to email the corresponding author at marschmi@umich.edu or tweet her at [micro_marian](https://twitter.com/micro_marian?lang=en).
 
 ```{r setup, include=FALSE}
 # For width of code chunks and scroll bar 
@@ -55,18 +55,18 @@ knitr::opts_chunk$set(eval = TRUE,
 # Load Libraries
 ```{r load-libraries, message = FALSE, warning = FALSE}
 library(devtools)   # Reproducibility (see end of file)
-library(phyloseq)   # Easier data manipulation
-library(picante)    # Phylogenetic Tree Analysis
+library(phyloseq)   # Easier data manipulation  
+library(picante)    # Phylogenetic Tree Analysis 
 library(tidyverse)  # Pretty plotting and data manipulation
 library(forcats)    # Recoding factors
 library(cowplot)    # Multiple plotting
-library(picante)    # Will also include ape and vegan
+library(picante)    # Will also include ape and vegan 
 library(car)        # Residual analysis  
 library(sandwich)   # vcovHC function in post-hoc test   
 library(MASS)       # studres in plot_residuals function   
 library(caret)      # Cross validation
-library(pander)     # Pretty tables     
-library(glmnet)     # Lasso regressions
+library(pander)     # Pretty tables      
+library(glmnet)     # Lasso regressions 
 library(broom)      # Stats from lm regression
 library(purrr)      # Exporting lm results  
 library(DT)         # Fancy HTML table output
@@ -251,7 +251,7 @@ weighted_df <- WEIGHTED_sesMPD_indepswap_RAREFIED_rm2 %>%
 ####  Have a legend for all plots 
 
 Since we have set a parameter in our `set_colors.R` file that we source at the beginning and use this throughout, we can assure that the below legends will represent the legends called afterwards. 
-```{r legend}
+```{r legends}
 ####### Legend for lakesite
 legend_plot <- ggplot(metadata, aes(y = frac_bacprod, x = fraction, fill = fraction, shape = season)) + 
   geom_jitter(size = 3, width = 0.2) + 
@@ -275,7 +275,7 @@ lakesite_legend <-  get_legend(lakesite_legend)
 
 
 ## Figure 1
-```{r boxplot-cellcount-prod, eval = TRUE, fig.width = 8.5, fig.height = 3.5, warning = FALSE, dependson="load-data"}
+```{r Figure_1, eval = TRUE, fig.width = 8.5, fig.height = 3.5, warning = FALSE, dependson="load-data"}
 ######################################################### Fraction ABUNDANCe 
 frac_abund_wilcox <- wilcox.test(log10(as.numeric(fraction_bac_abund)) ~ fraction, data = metadata)
 frac_abund_wilcox
@@ -382,7 +382,7 @@ row1_plots <- plot_grid(poster_a + theme(legend.position = "none"), poster_b, po
 
 
 #### Linear Regressions with Fraction Diversity
-```{r div-prod-lm-models}
+```{r lm-models-div}
 # Free-Living samples only 
 div_measures_free <- otu_alphadiv %>%
   dplyr::select(fraction, mean, measure, frac_bacprod, fracprod_per_cell_noinf) %>%
@@ -545,67 +545,9 @@ cv_lm_percell_prod_vs_simpseven_PA <- train(
 cv_lm_percell_prod_vs_simpseven_PA$results      # Particle Per-Capita CV results  
 ```
 
-## Table S3 
-```{r r2-table, dependson = "div-prod-lm-models"}
-########## PUT A TABLE TOGETHER  
-# Per Liter Production 
-perliter_row1 <- c("Richness", "Community-Wide",
-          round(summary(lm_prod_vs_rich_PA)$adj.r.squared, digits = 3),
-          round(cv_lm_prod_vs_rich_PA$results$Rsquared, digits = 3), 
-          round(cv_lm_prod_vs_rich_PA$results$RsquaredSD, digits = 3))
-
-perliter_row2 <- c("Shannon_Entropy", "Community-Wide",
-          round(summary(lm_prod_vs_shannon_PA)$adj.r.squared, digits = 3),
-          round(cv_lm_prod_vs_shannon_PA$results$Rsquared, digits = 3), 
-          round(cv_lm_prod_vs_shannon_PA$results$RsquaredSD, digits = 3))
-
-perliter_row3 <- c("Inverse_Simpson", "Community-Wide",
-          round(summary(lm_prod_vs_invsimps_PA)$adj.r.squared, digits = 3),
-          round(cv_lm_prod_vs_invsimps_PA$results$Rsquared, digits = 3), 
-          round(cv_lm_prod_vs_invsimps_PA$results$RsquaredSD, digits = 3))
-
-perliter_row4 <- c("Simpsons_Evenness","Community-Wide",
-          round(summary(lm_prod_vs_simpseven_PA)$adj.r.squared, digits = 3),
-          round(cv_lm_prod_vs_simpseven_PA$results$Rsquared, digits = 3), 
-          round(cv_lm_prod_vs_simpseven_PA$results$RsquaredSD, digits = 3))
-
-
-
-# Per cell production 
-percell_row1 <- c("Richness", "Per-Capita",
-          round(summary(lm_percell_prod_vs_rich_PA)$adj.r.squared, digits = 3),
-          round(cv_lm_percell_prod_vs_rich_PA$results$Rsquared, digits = 3), 
-          round(cv_lm_percell_prod_vs_rich_PA$results$RsquaredSD, digits = 3))
-
-percell_row2 <- c("Shannon Entropy", "Per-Capita",
-          round(summary(lm_percell_prod_vs_shannon_PA)$adj.r.squared, digits = 3),
-          round(cv_lm_percell_prod_vs_shannon_PA$results$Rsquared, digits = 3), 
-          round(cv_lm_percell_prod_vs_shannon_PA$results$RsquaredSD, digits = 3))
-
-percell_row3 <- c("Inverse Simpson", "Per-Capita",
-          round(summary(lm_percell_prod_vs_invsimps_PA)$adj.r.squared, digits = 3),
-          round(cv_lm_percell_prod_vs_invsimps_PA$results$Rsquared, digits = 3), 
-          round(cv_lm_percell_prod_vs_invsimps_PA$results$RsquaredSD, digits = 3))
-
-percell_row4 <- c("Simpsons Evenness", "Per-Capita",
-          round(summary(lm_percell_prod_vs_simpseven_PA)$adj.r.squared, digits = 3),
-          round(cv_lm_percell_prod_vs_simpseven_PA$results$Rsquared, digits = 3), 
-          round(cv_lm_percell_prod_vs_simpseven_PA$results$RsquaredSD, digits = 3))
-
-r2_table <- as.data.frame(rbind(perliter_row1, perliter_row2, perliter_row3, perliter_row4,
-                                percell_row1, percell_row2, percell_row3, percell_row4))
-colnames(r2_table) <- c("Diversity_Metric", "Production_Measure","Adjusted_R2","CV_R2", "CV_R2_SD")
-row.names(r2_table) = NULL
-
-datatable(r2_table,
-       caption = "Table S3: \n R2 estimates for heterotrophic production vs particle-associated diversity linear regressions.", 
-       options = list(pageLength = 50), rownames = FALSE)  
-```
-
-
 
 ## Figure 2
-```{r fig2-panels, fig.width = 7, fig.height = 7, dependson= "calc-div"}
+```{r Figure_2, fig.width = 7, fig.height = 7, dependson= "calc-div"}
 ######################################################### OBSERVED RICHNESS ######################################################### 
 rich_fraction_wilcox <- wilcox.test(mean ~ fraction, data = richness)
 rich_fraction_wilcox
@@ -798,7 +740,7 @@ plot_grid(figure2_row1, season_legend,
 ## Figure 3
 
 #### Unweighted ses.mpd
-```{r plot-unweighted-sesmpd, fig.width = 4.6, fig.height = 9.5, dependson = c("calc-div", "calc-sesmpd")}
+```{r Figure_3, fig.width = 4.6, fig.height = 9.5, dependson = c("calc-div", "calc-sesmpd")}
 ######################################################### SES MPD DISTRIBUTION: UNWEIGHTED  
 
 
@@ -824,12 +766,13 @@ unweight_distribution_plot <-
   geom_jitter(size = 3, aes(fill = fraction, shape = season), width = 0.2) + 
   geom_boxplot(alpha = 0.5, outlier.shape = NA, aes(fill = fraction)) +
   scale_shape_manual(values = season_shapes) + 
-  scale_y_continuous(limits = c(-1.5,1.75), breaks = seq(from = -1.5, to = 1.5, by = 0.5)) + 
+  scale_y_continuous(limits = c(-1.5,1.85), breaks = seq(from = -1.5, to = 1.5, by = 0.5)) + 
   ylab("Standardized Effect Size \n Unweighted Mean Pairwise Dist") +
   xlab("Fraction") + 
   geom_hline(yintercept = 0, linetype = "dashed", size = 1.5) +
   ##### Particle vs free per-cell production 
   geom_path(data = dat4, aes(x = a, y = b), linetype = 1, color = "#424645") +
+  annotate("text", x=1.5, y=1.85, size = 8, color = "#424645", label= paste("*"), angle = 90) +
   annotate("text", x=1.5, y=1.35, size = 4, color = "#424645",
            label= paste("p =", round(unweighted_fraction_wilcox$p.value, digits = 2))) +
   theme(legend.position = "none",# axis.title.y = element_blank(),
@@ -860,7 +803,7 @@ unweight_rich_vs_mpd_plot <-
   xlab("Standardized Effect Size \n Unweighted Mean Pairwise Dist") +
   scale_fill_manual(values = fraction_colors) +
   geom_smooth(method = "lm", color = "#424645", fill = "#424645", alpha = 0.3) + 
-  scale_x_continuous(limits = c(-1.5,1.75), breaks = seq(from = -1.5, to = 1.5, by = 0.5)) + 
+  scale_x_continuous(limits = c(-1.5,1.85), breaks = seq(from = -1.5, to = 1.5, by = 0.5)) + 
   # Add the R2 and p-value to the plot 
   annotate("text", x=0.75, y=750, label=lm_lab_richness_vs_unweight, parse = TRUE, color = "#424645", size = 4) +
   theme(legend.title = element_blank(), legend.position = "none", 
@@ -884,8 +827,9 @@ unweight_prod_vs_mpd_plot <-
   scale_shape_manual(values = season_shapes) + 
   ylab("\n Community Production \n (μgC/L/day)") +
   xlab("Standardized Effect Size \n Unweighted Mean Pairwise Dist") +
+  scale_color_manual(values = fraction_colors) +
   scale_fill_manual(values = fraction_colors) +
-  scale_x_continuous(limits = c(-1.5,1.75), breaks = seq(from = -1.5, to = 1.5, by = 0.5)) + 
+  scale_x_continuous(limits = c(-1.5,1.85), breaks = seq(from = -1.5, to = 1.5, by = 0.5)) + 
   theme(legend.title = element_blank(), legend.position = "none",
         axis.text.x = element_blank(), axis.title.x = element_blank())
 
@@ -916,7 +860,7 @@ unweight_percell_vs_mpd_plot <-
   scale_shape_manual(values = season_shapes) + 
   geom_smooth(method = "lm", color="#424645", fill = "#424645", alpha = 0.3) +
   scale_y_continuous(limits = c(-8.5,-5), breaks = c(-8, -7, -6)) + 
-  scale_x_continuous(limits = c(-1.5,1.75), breaks = seq(from = -1.5, to = 1.5, by = 0.5)) + 
+  scale_x_continuous(limits = c(-1.5,1.85), breaks = seq(from = -1.5, to = 1.5, by = 0.5)) + 
   # Add the R2 and p-value to the plot 
   annotate("text", x=0.75, y=-6, label=lm_lab_percell_unweightPD, parse = TRUE, color = "#424645", size = 4) +
   theme(legend.title = element_blank(), legend.position ="bottom", 
@@ -1127,7 +1071,7 @@ lasso_divs_1se <- glmnet(x, y, alpha = 1, lambda = lasso_lambda_1se, standardize
 predict(lasso_divs_1se, type = "coefficients", s = lasso_lambda_1se)
 ```
 
-The lasso model for predicting the community-wide heterotrophic bacterial production for the free-living habitat uses pH and PC5 as the **best and only two** predictors!
+PC5 and pH are the two best predictors of community-wide heterotrophic bacterial production in the free-living habitat.
 
 
 #### Per-capita Production: Particle
@@ -1182,7 +1126,7 @@ lasso_divs_1se <- glmnet(x, y, alpha = 1, lambda = lasso_lambda_1se, standardize
 predict(lasso_divs_1se, type = "coefficients", s = lasso_lambda_1se)
 ```
 
-Temperature and Inverse Simpson's Index are the two best predictors of particle-associated per-capita production!
+Temperature and Inverse Simpson's Index are the two best predictors of particle-associated per-capita production.
 
 #### Per-capita Production: Free
 ```{r percapita-free-lasso, dependson = c("calc-div", "prepare-data-lasso"), fig.width=8, fig.height=4, warning = TRUE}
@@ -1235,7 +1179,7 @@ lasso_divs_1se <- glmnet(x, y, alpha = 1, lambda = lasso_lambda_1se, standardize
 predict(lasso_divs_1se, type = "coefficients", s = lasso_lambda_1se) 
 ```
 
-pH is the **only** predictors of free-living per-capita production!
+pH is the **only** predictors of free-living per-capita production.
 
 
 
@@ -1295,8 +1239,7 @@ lasso_divs_1se <- glmnet(x, y, alpha = 1, lambda = lasso_lambda_1se, standardize
 predict(lasso_divs_1se, type = "coefficients", s = lasso_lambda_1se)
 ```
 
-The "one-standard-error" approach to lasso is not effective in the above approach and therefore, we will use the `lambda.min`.
-
+As we can see in Figure 2 and Table S1, there is much less variation explained in this model by a linear regression. Here, the result of the "one-standard-error" approach shows that the lasso is unable to pick a variable.  Therefore, no variables are chosen.
 
 
 #### Per-capita Production:  All Samples
@@ -1351,12 +1294,13 @@ predict(lasso_divs_1se, type = "coefficients", s = lasso_lambda_1se)
 ```
 
 
+As we can see in Figure S7 and Table S2, Richness is the best predictor of per-capita heterotrophic production when all samples are used in the model. 
 
 # Supplemental Figures 
 
 ## Figure S1
 #### Map of Muskegon Lake
-```{r musk-map}
+```{r Figure_S1}
 # Load the ggmap package for plotting of Muskegon Lake
 library(ggmap)
 
@@ -1382,7 +1326,7 @@ ggmap(map) + xlab("Longitude") + ylab("Latitude") +
 
 ## Figure S2
 #### Faith's PD
-```{r faiths-pd, fig.width = 4.25, fig.height = 4}
+```{r Figure_S2, fig.width = 4.25, fig.height = 4}
 surface_PAFL_otu_pruned_RAREFIED_rm2
 
 ## Calculate Faith's PD and species richness for sample 
@@ -1415,7 +1359,7 @@ ggplot(meta_data_PD, aes(y = PD, x = SR)) +
 
 ## Figure S3 
 #### Correlations between Particle and Free of values in Figure 1
-```{r corresponding-cell-prod, fig.width = 10, fig.height = 4, dependson="load-data"}
+```{r Figure_S3, fig.width = 10, fig.height = 4, dependson="load-data"}
 work_df <- metadata %>%
   dplyr::select(norep_filter_name, fraction, fraction_bac_abund, frac_bacprod, fracprod_per_cell_noinf) %>%
   mutate(norep_water_name = paste(substr(norep_filter_name, 1,4), substr(norep_filter_name, 6,9), sep = "")) %>%
@@ -1520,8 +1464,7 @@ plot_grid(top_row_S1, legend_s1,
 
 ## Figure S4
 #### Compare Diversity Estimates across Station and Season
-```{r figs4-div-station-season, fig.width = 14, fig.height = 7, dependson= c("calc-div", "prepare-data-lasso")}
-
+```{r Figure_S4, fig.width = 14, fig.height = 7, dependson= c("calc-div", "prepare-data-lasso")}
 long_div_df <- lasso_data_df %>%
   dplyr::select(norep_filter_name, lakesite:season, Richness:Weighted_PD) %>%
   gather(measure, mean, Richness:Weighted_PD) %>%
@@ -1568,7 +1511,7 @@ plot_grid(plot_A, plot_B,
 
 ## Figure S5
 #### Shannon and Simpson's Evenness 
-```{r figS5-panels, fig.width = 7, fig.height = 7, dependson = "calc-div"}
+```{r Figure_S5, fig.width = 7, fig.height = 7, dependson = "calc-div"}
 ######################################################### SHANNON ENTROPY ######################################################### 
 shannon_fraction_wilcox <- wilcox.test(mean ~ fraction, data = shannon)
 shannon_fraction_wilcox
@@ -1756,7 +1699,7 @@ plot_grid(figS2_row1, season_legend,
 
 ## Figure S7
 #### Per capita production combined models 
-```{r figS7, fig.width=12, fig.height=3.5, dependson= "calc-div"}
+```{r Figure_S7, fig.width=12, fig.height=3.5, dependson= "calc-div"}
 ################ Figure S7A: Per-cell Heterotrophic Production vs All Observed Richness
 ## 1. Extract the R2 and p-value from the linear model: 
 lm_lab_overall_rich_vs_percell <- 
@@ -1865,7 +1808,7 @@ plot_grid(figs3_row1, legend_grey,
 
 ## Figure S8 
 #### Weighted ses.mpd
-```{r plot-weighted-sesmpd, fig.width = 4.5, fig.height = 9.5, dependson = c("calc-div", "calc-sesmpd")}
+```{r Figure_S8, fig.width = 4.5, fig.height = 9.5, dependson = c("calc-div", "calc-sesmpd")}
 ######################################################### SES MPD DISTRIBUTION: WEIGHTED 
 weighted_fraction_wilcox <- wilcox.test(mpd.obs.z ~ fraction, data = weighted_df)
 weighted_fraction_wilcox
@@ -2048,7 +1991,7 @@ plot_grid(row1_weighted_PD_plot, season_legend,
 ```
   
   
-```{r, randomized-sesmpd, fig.width = 4.25, fig.height = 4, dependson = c("randomize-richness", "calc-div")}  
+```{r, Figure_S9, fig.width = 4.25, fig.height = 4, dependson = c("randomize-richness", "calc-div")}  
 # Read in the tree
 randomized_tree <- read.tree(file = "data/PhyloTree/randomized/newick_tree_randomized_rmN.tre")
   
@@ -2120,7 +2063,7 @@ plot_grid(randomized_rich_plot, season_legend,
 
 ## Figure S10
 #### PCA with Euclidian Distances  
-```{r euclidian-pcoa-varexplained, fig.height=4, fig.width=5}
+```{r Figure_S10, fig.height=4, fig.width=5}
 # Make the Supplemental Figure
 par(mar = c(4.5, 4.5, 1, 1))
 biplot(pca_environ,
@@ -2158,7 +2101,7 @@ summary(pca_environ)$cont$importance[3, 2]*100
 The first two axes of the PCA explain ~70% of the variation in the environmental data!
 
 
-### Prepare 
+#### Prepare data frames for table S1 and S2
 ```{r environ-lm, dependson = "euclidian-pcoa-varexplained"}
 ## Prepare the dataframes for Free and Particle data
 metadata_pca_free <- filter(metadata_pca, fraction == "Free")
@@ -2259,7 +2202,7 @@ individual_lm_results <- bind_rows(lm_div_results, all_pca_environ_lm_results) %
 ``` 
 
 ## Table S1
-```{r table-s2}
+```{r Table_S1}
 #### Community-Wide Production    
 datatable(dplyr::filter(individual_lm_results, dependent_var == "Community Production" & p.value < 0.05),
        caption = "Significant (< 0.05) Linear Predictions for Community-Wide Heterotrophic Production axes with a p-value less than 0.05.", 
@@ -2268,7 +2211,7 @@ datatable(dplyr::filter(individual_lm_results, dependent_var == "Community Produ
 
 
 ## Table S2
-```{r table-s1}
+```{r Table_S2}
 ### Per-Capita Production   
 datatable(dplyr::filter(data.frame(individual_lm_results), dependent_var == "Per-Capita Production" & p.value < 0.05), 
        caption = "Significant (< 0.05) Linear Predictions for Per-Capita Heterotrophic Production axes with a p-value less than 0.05.", 
@@ -2278,8 +2221,71 @@ datatable(dplyr::filter(data.frame(individual_lm_results), dependent_var == "Per
 
 
 
+
+
+# Bonus Analysis
+
+## Cross Validation 
+```{r Table_S3, dependson = "div-prod-lm-models"}
+########## PUT A TABLE TOGETHER  
+# Per Liter Production 
+perliter_row1 <- c("Richness", "Community-Wide",
+          round(summary(lm_prod_vs_rich_PA)$adj.r.squared, digits = 3),
+          round(cv_lm_prod_vs_rich_PA$results$Rsquared, digits = 3), 
+          round(cv_lm_prod_vs_rich_PA$results$RsquaredSD, digits = 3))
+
+perliter_row2 <- c("Shannon_Entropy", "Community-Wide",
+          round(summary(lm_prod_vs_shannon_PA)$adj.r.squared, digits = 3),
+          round(cv_lm_prod_vs_shannon_PA$results$Rsquared, digits = 3), 
+          round(cv_lm_prod_vs_shannon_PA$results$RsquaredSD, digits = 3))
+
+perliter_row3 <- c("Inverse_Simpson", "Community-Wide",
+          round(summary(lm_prod_vs_invsimps_PA)$adj.r.squared, digits = 3),
+          round(cv_lm_prod_vs_invsimps_PA$results$Rsquared, digits = 3), 
+          round(cv_lm_prod_vs_invsimps_PA$results$RsquaredSD, digits = 3))
+
+perliter_row4 <- c("Simpsons_Evenness","Community-Wide",
+          round(summary(lm_prod_vs_simpseven_PA)$adj.r.squared, digits = 3),
+          round(cv_lm_prod_vs_simpseven_PA$results$Rsquared, digits = 3), 
+          round(cv_lm_prod_vs_simpseven_PA$results$RsquaredSD, digits = 3))
+
+
+
+# Per cell production 
+percell_row1 <- c("Richness", "Per-Capita",
+          round(summary(lm_percell_prod_vs_rich_PA)$adj.r.squared, digits = 3),
+          round(cv_lm_percell_prod_vs_rich_PA$results$Rsquared, digits = 3), 
+          round(cv_lm_percell_prod_vs_rich_PA$results$RsquaredSD, digits = 3))
+
+percell_row2 <- c("Shannon Entropy", "Per-Capita",
+          round(summary(lm_percell_prod_vs_shannon_PA)$adj.r.squared, digits = 3),
+          round(cv_lm_percell_prod_vs_shannon_PA$results$Rsquared, digits = 3), 
+          round(cv_lm_percell_prod_vs_shannon_PA$results$RsquaredSD, digits = 3))
+
+percell_row3 <- c("Inverse Simpson", "Per-Capita",
+          round(summary(lm_percell_prod_vs_invsimps_PA)$adj.r.squared, digits = 3),
+          round(cv_lm_percell_prod_vs_invsimps_PA$results$Rsquared, digits = 3), 
+          round(cv_lm_percell_prod_vs_invsimps_PA$results$RsquaredSD, digits = 3))
+
+percell_row4 <- c("Simpsons Evenness", "Per-Capita",
+          round(summary(lm_percell_prod_vs_simpseven_PA)$adj.r.squared, digits = 3),
+          round(cv_lm_percell_prod_vs_simpseven_PA$results$Rsquared, digits = 3), 
+          round(cv_lm_percell_prod_vs_simpseven_PA$results$RsquaredSD, digits = 3))
+
+r2_table <- as.data.frame(rbind(perliter_row1, perliter_row2, perliter_row3, perliter_row4,
+                                percell_row1, percell_row2, percell_row3, percell_row4))
+colnames(r2_table) <- c("Diversity_Metric", "Production_Measure","Adjusted_R2","CV_R2", "CV_R2_SD")
+row.names(r2_table) = NULL
+
+datatable(r2_table,
+       caption = "Table S3: \n R2 estimates for heterotrophic production vs particle-associated diversity linear regressions.", 
+       options = list(pageLength = 50), rownames = FALSE)  
+```
+
+
+
 ## pH Analysis
-```{r pH-analysis, fig.height=8, fig.width=8}
+```{r pH-analysis, fig.height=4, fig.width=8}
 ################ Free: Per-Capita production correlation with pH
 ## 1. Run the linear regression 
 lm_pH_percap_free <- lm(log10(fracprod_per_cell_noinf) ~ pH, data = dplyr::filter(metadata_pca, fraction == "Free"))
@@ -2339,96 +2345,14 @@ plot_pH_comm <- ggplot(data = metadata_pca,aes(x = pH, y = frac_bacprod)) +
   annotate("text", y = 55, x=8.3, label=lm_lab_pH_comm_free, parse = TRUE, color = "deepskyblue3", size = 4) +
   theme(legend.title = element_blank(), legend.position = "none")  
 
-
-
-################ Free: Richness vs pH
-## 1. Run the linear regression 
-lm_pH_rich_free <- lm(mean ~ pH, data = dplyr::filter(richness, fraction == "Free"))
-
-# 2. Extract the R2 and p-value from the linear model: 
-lm_lab_pH_rich_free <- paste("atop(R^2 ==", round(summary(lm_pH_rich_free)$adj.r.squared, digits = 2), ",",
-            "p ==", round(unname(summary(lm_pH_rich_free)$coefficients[,4][2]), digits = 2), ")")
-
-################ Particle: Richness vs pH
-## 3. Run the linear regression 
-lm_pH_rich_part <- lm(mean ~ pH, data = dplyr::filter(richness, fraction == "Particle"))
-
-# 4. Extract the R2 and p-value from the linear model: 
-lm_lab_pH_rich_part <- paste("atop(R^2 ==", round(summary(lm_pH_rich_part)$adj.r.squared, digits = 2), ",",
-            "p ==", round(unname(summary(lm_pH_rich_part)$coefficients[,4][2]), digits = 3), ")")
-
-plot_rich_vs_pH <- 
-  ggplot(data = richness, aes(x = pH, y = mean)) +
-  geom_point(size = 3, aes(fill = fraction, shape = season)) + 
-  ylab("Observed Richness") + 
-  scale_shape_manual(values = season_shapes) + 
-  scale_fill_manual(values = fraction_colors) + 
-  #geom_smooth(method = "lm", color = "skyblue", fill = "skyblue", data = dplyr::filter(richness, fraction == "Free")) +
-  geom_smooth(method = "lm", color = "#FF6600", fill = "#FF6600", data = dplyr::filter(richness, fraction == "Particle")) +
-  # Add the R2 and p-value to the plot 
-  annotate("text", y = 800, x=8.4, label=lm_lab_pH_rich_part, parse = TRUE, color = "#FF6600", size = 4) +
-  annotate("text", y = 300, x=8.12, label=lm_lab_pH_rich_free, parse = TRUE, color = "deepskyblue3", size = 4) +
-  theme(legend.title = element_blank(), legend.position = "none")  
-
-
-################ Free: Inverse Simpson vs pH
-## 1. Run the linear regression 
-lm_pH_invsimps_free <- lm(mean ~ pH, data = dplyr::filter(invsimps, fraction == "Free"))
-
-# 2. Extract the R2 and p-value from the linear model: 
-lm_lab_pH_invsimps_free <- paste("atop(R^2 ==", round(summary(lm_pH_invsimps_free)$adj.r.squared, digits = 2), ",",
-            "p ==", round(unname(summary(lm_pH_invsimps_free)$coefficients[,4][2]), digits = 2), ")")
-
-################ Particle: Inverse Simpson vs pH
-## 3. Run the linear regression 
-lm_pH_invsimps_part <- lm(mean ~ pH, data = dplyr::filter(invsimps, fraction == "Particle"))
-
-# 4. Extract the R2 and p-value from the linear model: 
-lm_lab_pH_invsimps_part <- paste("atop(R^2 ==", round(summary(lm_pH_invsimps_part)$adj.r.squared, digits = 2), ",",
-            "p ==", round(unname(summary(lm_pH_invsimps_part)$coefficients[,4][2]), digits = 4), ")")
-
-plot_invsimps_vs_pH <-
-  ggplot(data = invsimps, aes(x = pH, y = mean)) +
-  geom_point(size = 3, aes(fill = fraction, shape = season)) + 
-  ylab("Inverse Simpson") + 
-  scale_shape_manual(values = season_shapes) + 
-  scale_fill_manual(values = fraction_colors) + 
-  #geom_smooth(method = "lm", color = "skyblue", fill = "skyblue", data = dplyr::filter(invsimps, fraction == "Free")) +
-  geom_smooth(method = "lm", color = "#FF6600", fill = "#FF6600", data = dplyr::filter(invsimps, fraction == "Particle")) +
-  # Add the R2 and p-value to the plot 
-  annotate("text", y = 70, x=8.4, label=lm_lab_pH_invsimps_part, parse = TRUE, color = "#FF6600", size = 4) +
-  annotate("text", y = 5, x=8.15, label=lm_lab_pH_invsimps_free, parse = TRUE, color = "deepskyblue3", size = 4) +
-  theme(legend.title = element_blank(), legend.position = "none")  
-
-
-pH_plots <- plot_grid(plot_pH_comm, plot_pH_per_cap, plot_rich_vs_pH, plot_invsimps_vs_pH, 
-                      labels = c("A", "B", "C", "D"),nrow = 2, ncol = 2)
+# Put the plots together!
+pH_plots <- plot_grid(plot_pH_comm, plot_pH_per_cap,labels = c("A", "B"),nrow = 1, ncol = 2)
 
 plot_grid(pH_plots, season_legend, 
           nrow = 2, ncol = 1, rel_heights = c(1, 0.1))
 ```
 
-# Multiple Regression with PCA results 
-```{r multiple-regression-PCA}
-## Community-wide: Free living with PC1 + PC2 = Not significant
-summary(lm(frac_bacprod ~ PC1 + PC2, data = filter(metadata_pca, fraction == "Free")))
 
-## Community-wide:Particle-associated with PC1 + PC2 = Not significant
-summary(lm(frac_bacprod ~ PC1 + PC2, data = filter(metadata_pca, fraction == "Particle")))
-
-## PER CAPITA: Free living with PC1 + PC2 = Not significant
-summary(lm(log10(fracprod_per_cell_noinf) ~ PC1 + PC2, data = filter(metadata_pca, fraction == "Free")))
-
-## PER CAPITA: Particle-associatedwith PC1 + PC2  = SIGNIFICANT (p = 0.015)
-lm_percap_PC12_part <- lm(log10(fracprod_per_cell_noinf) ~ PC1 + PC2, data = filter(metadata_pca, fraction == "Particle"))
-summary(lm_percap_PC12_part)
-```
-
-**Important!** In a multiple regression, PC1 and PC2 correlate with log~10~(per-capita heterotrophic production)!
-
-
-
-# Bonus Visualizations/Analysis
 
 ## Community-wide and Per-Capita Heterotrophic Production over Station and Season
 
@@ -2507,7 +2431,26 @@ plot_grid(prod_by_station, prod_by_season, labels = c("A", "B"),
 The highest total heterotrophic production rates occur in the river station and in the spring and summer. 
 
 
-# Environmental Variables Pairs
+## Multiple Regression with PCA results 
+```{r multiple-regression-PCA}
+## Community-wide: Free living with PC1 + PC2 = Not significant
+summary(lm(frac_bacprod ~ PC1 + PC2, data = filter(metadata_pca, fraction == "Free")))
+
+## Community-wide:Particle-associated with PC1 + PC2 = Not significant
+summary(lm(frac_bacprod ~ PC1 + PC2, data = filter(metadata_pca, fraction == "Particle")))
+
+## PER CAPITA: Free living with PC1 + PC2 = Not significant
+summary(lm(log10(fracprod_per_cell_noinf) ~ PC1 + PC2, data = filter(metadata_pca, fraction == "Free")))
+
+## PER CAPITA: Particle-associatedwith PC1 + PC2  = SIGNIFICANT (p = 0.015)
+lm_percap_PC12_part <- lm(log10(fracprod_per_cell_noinf) ~ PC1 + PC2, data = filter(metadata_pca, fraction == "Particle"))
+summary(lm_percap_PC12_part)
+```
+
+**Important!** In a multiple regression, PC1 and PC2 correlate with log~10~(per-capita heterotrophic production)!
+
+
+## Environmental Variables Pairs
 ```{r environmental-pairwise, fig.height=20, fig.width=20}
 pairs(environmental_data)
 ```
