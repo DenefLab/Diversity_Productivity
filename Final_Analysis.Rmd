@@ -70,6 +70,7 @@ library(glmnet)     # Lasso regressions
 library(broom)      # Stats from lm regression 
 library(purrr)      # Exporting lm results  
 library(DT)         # Fancy HTML table output
+library(vegan)      # For stats
 source("code/Muskegon_functions.R")   # Source custom functions  
 source("code/set_colors.R")           # Set Colors for plotting
 ```
@@ -139,7 +140,7 @@ metadata_pca <- metadata %>%
   left_join(pca_scores_df, by = "norep_water_name")
 ```
 
-Removing the OTUs that are doubletons across the entire dataset leaves a total of `r ntaxa(surface_PAFL_otu_pruned_rm2)` OTUs, a decrease from `r ntaxa(surface_PAFL_otu_pruned_raw)`. This will help decrease the computational load for phylogenetic analysis and also further remove potential sequencing artifacts.
+Removing the OTUs that are doubletons across the entire dataset leaves a total of `r phyloseq::ntaxa(surface_PAFL_otu_pruned_rm2)` OTUs, a decrease from `r phyloseq::ntaxa(surface_PAFL_otu_pruned_raw)`. This will help decrease the computational load for phylogenetic analysis and also further remove potential sequencing artifacts.
 
 
 ## Calculate Community Diversity 
@@ -746,8 +747,22 @@ plot_grid(figure2_row1, season_legend,
                    rel_heights = c(1, 0.05))
 ```
 
-
-
+## Graphical Abstract
+```{r graphical_abstract, fig.width = 4, fig.height = 3, dependson= c("calc-div", "Figure_2")}
+ggplot(invsimps, aes(x=mean, y=frac_bacprod)) + 
+  geom_errorbarh(aes(xmin = mean - sd, xmax = mean + sd, color = fraction), alpha = 0.7) + # X-axis errorbars
+  geom_errorbar(aes(ymin = frac_bacprod - SD_frac_bacprod, ymax = frac_bacprod + SD_frac_bacprod, color = fraction)) +  # Y-axis errorbars
+  geom_point(size = 3.5, shape = 22, color = "black", aes(fill = fraction)) +
+  scale_color_manual(values = fraction_colors) +
+  scale_fill_manual(values = fraction_colors) +
+  ylab("Community Production \n (μgC/L/day)") + 
+  xlab("Inverse Simpson") +
+  geom_smooth(data=filter(invsimps, fraction == "Particle"), method='lm', color = "#FF6600", fill = "#FF6600") + 
+  scale_x_continuous(limits = c(0,85), breaks = seq(from = 0, to = 85, by = 20)) + 
+  # Add the R2 and p-value to the plot 
+  annotate("text", x=70, y=45, label=lm_lab_perliter_invsimps_PA, parse = TRUE, color = "#FF6600", size = 4) +
+  theme(legend.position = c(0.7, 0.9), legend.title = element_blank()) 
+```
 
 ## Figure 3
 
