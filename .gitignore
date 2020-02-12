@@ -1,3 +1,4 @@
+.DS_Store
 .Rproj.user
 .Rhistory
 .RData
@@ -9,3 +10,6 @@ OTU_Removal_Analysis_cache
 Final_Analysis_cache
 analysis/OTU_Removal_Analysis_cache
 analysis/PrunedTree_Analysis_cache
+DDIG-fig.R
+Obervational.R
+observational-div.jpg
